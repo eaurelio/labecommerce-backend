@@ -1,0 +1,25 @@
+{
+  "name": "labecommerce-backend",
+  "version": "1.0.0",
+  "description": "Projeto backend de um Ecommerce, utilizando nodeJS e Typescript",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node ./build/index.js App",
+    "parimpar": "node parimpar.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eaurelio/labecommerce-backend.git"
+  },
+  "keywords": [],
+  "author": "Edson Aurélio",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eaurelio/labecommerce-backend/issues"
+  },
+  "homepage": "https://github.com/eaurelio/labecommerce-backend#readme",
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "@types/node": "^18.14.4"
+  }
+}
