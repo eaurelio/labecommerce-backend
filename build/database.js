@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pucharses = exports.products = exports.users = void 0;
+exports.getAllPurchasesFromUserId = exports.createPurchase = exports.queryProductsByName = exports.getProductById = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.pucharses = exports.products = exports.users = void 0;
+const types_1 = require("./types/types");
 exports.users = [
     {
         id: "1",
@@ -23,19 +24,25 @@ exports.products = [
         id: '1',
         name: 'Teclado controlador Alesis',
         price: 2500,
-        category: 'Instrumento musical'
+        category: types_1.Categories.KEYBOARD
     },
     {
         id: '2',
         name: 'Guitarra Ibanez RG370FMZ',
         price: 3700,
-        category: 'Instrumento musical'
+        category: types_1.Categories.ELETRIC_GUITAR
     },
     {
         id: '3',
         name: 'Valeton GP-200',
         price: 1750,
-        category: 'Processador de efeitos'
+        category: types_1.Categories.EFFECTS_PROCESSOR
+    },
+    {
+        id: '4',
+        name: 'Takamine Premium',
+        price: 2250,
+        category: types_1.Categories.ACOUSTIC_GUITAR
     }
 ];
 exports.pucharses = [
@@ -58,4 +65,53 @@ exports.pucharses = [
         totalPrice: 1750,
     },
 ];
+function createUser(id, email, password) {
+    exports.users.push({
+        id: id,
+        email: email,
+        password: password
+    });
+    console.log('Cadastro realizado com sucesso');
+}
+exports.createUser = createUser;
+function getAllUsers() {
+    console.log(exports.users);
+}
+exports.getAllUsers = getAllUsers;
+function createProduct(id, name, price, category) {
+    exports.products.push({
+        id: id,
+        name: name,
+        price: price,
+        category: category
+    });
+    console.log('Produto criado com sucesso');
+}
+exports.createProduct = createProduct;
+function getAllProducts() {
+    console.log(exports.products);
+}
+exports.getAllProducts = getAllProducts;
+function getProductById(idToSearch) {
+    return exports.products.filter((product) => product.id === idToSearch);
+}
+exports.getProductById = getProductById;
+function queryProductsByName(query) {
+    return exports.products.filter(product => product.name.includes(query));
+}
+exports.queryProductsByName = queryProductsByName;
+function createPurchase(userId, productId, quantity, totalPrice) {
+    exports.pucharses.push({
+        userId: userId,
+        productId: productId,
+        quantity: quantity,
+        totalPrice: totalPrice
+    });
+    console.log('Compra realizada com sucesso');
+}
+exports.createPurchase = createPurchase;
+function getAllPurchasesFromUserId(userId) {
+    return exports.pucharses.filter(pucharse => pucharse.userId === userId);
+}
+exports.getAllPurchasesFromUserId = getAllPurchasesFromUserId;
 //# sourceMappingURL=database.js.map
