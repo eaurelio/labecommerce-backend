@@ -77,13 +77,12 @@ export const pucharses: pucharse[] = [
 
 // ----------------Functions----------------
 // Users
-export function createUser(id:string, email:string, password:string):user | void{
+export function createUser(id:string, email:string, password:string):void{
   users.push({
     id: id, 
     email: email, 
     password: password
   })
-
   console.log('Cadastro realizado com sucesso')
 }
 
@@ -102,15 +101,15 @@ export function createProduct(id:string, name:string, price:number, category:Cat
   console.log('Produto criado com sucesso')
 }
 
-export function getAllProducts():void {
-  console.log(products)
+export function getAllProducts():Object {
+  return products
 }
 
-export function getProductById(idToSearch:string){
+export function getProductById(idToSearch:string) : Object{
   return products.filter((product) => product.id === idToSearch)
 }
 
-export function queryProductsByName(query:string) {
+export function queryProductsByName(query:string) : object{
   return products.filter(product => product.name.includes(query))
 }
 // Pucharses
@@ -126,6 +125,6 @@ export function createPurchase(userId: string, productId:string, quantity:number
   console.log('Compra realizada com sucesso')
 }
 
-export function getAllPurchasesFromUserId(userId:String) {
+export function getAllPurchasesFromUserId(userId:String) : Object {
   return pucharses.filter(pucharse => pucharse.userId === userId)
 }

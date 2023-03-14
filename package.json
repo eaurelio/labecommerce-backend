@@ -4,8 +4,7 @@
   "description": "Projeto backend de um Ecommerce, utilizando nodeJS e Typescript",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node ./build/index.js App",
-    "parimpar": "node parimpar.js"
+    "start": "tsc && node ./build/index.js App"
   },
   "repository": {
     "type": "git",
