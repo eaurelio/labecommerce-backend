@@ -5,7 +5,8 @@ export enum Categories {
   BASS = 'Baixos',
   AMP = 'Amplificadores',
   EFFECTS_PROCESSOR = 'Processadores de efeito',
-  ACCESSORIES = 'Acessórios'
+  ACCESSORIES = 'Acessórios',
+  VIOLIN = 'Violinos'
 }
 
 export type user = {

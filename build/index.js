@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
+const database_1 = require("./database");
 app.listen(3003, () => {
     console.log("Servidor rodando na porta 3003");
 });
@@ -15,5 +16,15 @@ app.get('/index', (req, res) => {
     res
         .status(200)
         .send('Aplicação em operação');
+});
+app.get('/users', (req, res) => {
+    res
+        .status(200)
+        .send(database_1.users);
+});
+app.get('/products', (req, res) => {
+    res
+        .status(200)
+        .send(database_1.products);
 });
 //# sourceMappingURL=index.js.map
