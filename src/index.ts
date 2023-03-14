@@ -1,37 +1,15 @@
-import { Categories } from "./types/types"
-import { 
-  users,
-  products,
-  pucharses,
-  createUser,
-  getAllUsers,
-  createProduct,
-  getAllProducts,
-  getProductById,
-  queryProductsByName,
-  createPurchase,
-  getAllPurchasesFromUserId
-} from "./database"
+import  express, { Request, Response} from 'express'
+import cors from 'cors';
+const app = express();
+app.use(express.json());
+app.use(cors());
 
+app.listen(3003, () => {
+    console.log("Servidor rodando na porta 3003");
+});
 
-const application = process.argv[2]
-console.log(`A aplicação '${application}' foi iniciada...`)
-
-// Printing data
-console.table(users)
-console.table(products)
-console.table(pucharses)
-
-// Handle Users
-createUser('256', 'gatinha_@mail.com', '98653241785')
-getAllUsers()
-
-// Handle Products
-createProduct('4', 'Corda para guitarra NIG 009', 45, Categories.ACCESSORIES)
-console.table(getAllProducts())
-console.table(getProductById('3'))
-console.log(queryProductsByName('Gui'))
-
-// Handle Pucharses
-createPurchase('1', '4', 1, 2250)
-console.log(getAllPurchasesFromUserId('1'))
+app.get('/index', (req: Request, res: Response) => {
+  res
+    .status(200)
+    .send('Aplicação em operação')
+})

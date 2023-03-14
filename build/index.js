@@ -1,18 +1,19 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const types_1 = require("./types/types");
-const database_1 = require("./database");
-const application = process.argv[2];
-console.log(`A aplicação '${application}' foi iniciada...`);
-console.table(database_1.users);
-console.table(database_1.products);
-console.table(database_1.pucharses);
-(0, database_1.createUser)('256', 'gatinha_@mail.com', '98653241785');
-(0, database_1.getAllUsers)();
-(0, database_1.createProduct)('4', 'Corda para guitarra NIG 009', 45, types_1.Categories.ACCESSORIES);
-console.table((0, database_1.getAllProducts)());
-console.table((0, database_1.getProductById)('3'));
-console.log((0, database_1.queryProductsByName)('Gui'));
-(0, database_1.createPurchase)('1', '4', 1, 2250);
-console.log((0, database_1.getAllPurchasesFromUserId)('1'));
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+app.listen(3003, () => {
+    console.log("Servidor rodando na porta 3003");
+});
+app.get('/index', (req, res) => {
+    res
+        .status(200)
+        .send('Aplicação em operação');
+});
 //# sourceMappingURL=index.js.map
