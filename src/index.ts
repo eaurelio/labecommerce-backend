@@ -23,12 +23,12 @@ console.table(products)
 console.table(pucharses)
 
 // Handle Users
-createUser('256', 'gatinha_manhosa@mail.com', '98653241785')
+createUser('256', 'gatinha_@mail.com', '98653241785')
 getAllUsers()
 
 // Handle Products
 createProduct('4', 'Corda para guitarra NIG 009', 45, Categories.ACCESSORIES)
-getAllProducts()
+console.table(getAllProducts())
 console.table(getProductById('3'))
 console.log(queryProductsByName('Gui'))
 

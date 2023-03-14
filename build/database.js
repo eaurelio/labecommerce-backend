@@ -89,7 +89,7 @@ function createProduct(id, name, price, category) {
 }
 exports.createProduct = createProduct;
 function getAllProducts() {
-    console.log(exports.products);
+    return exports.products;
 }
 exports.getAllProducts = getAllProducts;
 function getProductById(idToSearch) {
