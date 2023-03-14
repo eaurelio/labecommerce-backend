@@ -17,7 +17,7 @@ app.listen(3003, () => {
 app.get('/index', (req: Request, res: Response) => {
   res
     .status(200)
-    .send('Aplicação em operação')
+    .send('Aplicação em operação!')
 })
 
 //----------------------------------Retrieving data----------------------------------
@@ -51,7 +51,7 @@ app.post('/users', (req: Request, res: Response) => {
   users.push(newUser)
   res
     .status(201)
-    .send('Usuário cadastrado!')
+    .send(`Usuário ${email} cadastrado!`)
     // .send(users)
 })
 // Create product
@@ -61,7 +61,7 @@ app.post('/products', (req: Request, res: Response) => {
   products.push(newProduct)
   res
     .status(201)
-    .send('Produco cadastrado!')
+    .send(`Produto '${name}' cadastrado!`)
     // .send(products)
 })
 // Create pucharse
@@ -71,6 +71,6 @@ app.post('/pucharses', (req: Request, res: Response) => {
   pucharses.push(newPucharse)
   res
     .status(201)
-    .send('Compra realizada com sucesso!')
+    .send(`Compra realizada com sucesso! Valor total: R$ ${totalPrice}`)
     // .send(pucharses)
 })
