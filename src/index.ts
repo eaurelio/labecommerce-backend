@@ -6,7 +6,7 @@ app.use(express.json());
 app.use(cors());
 // Dados da aplicação
 import { users, products, pucharses } from './database';
-import { user, product, pucharse } from './types/types'; 
+import { user, product, pucharse, Categories } from './types/types'; 
 
 
 app.listen(3003, () => {
@@ -20,30 +20,13 @@ app.get('/index', (req: Request, res: Response) => {
     .send('Aplicação em operação!')
 })
 
-//----------------------------------Retrieving data----------------------------------
+//----------------------------------Users----------------------------------
 // Get All users
 app.get('/users', (req: Request, res: Response) => {
   res
     .status(200)
     .send(users)
 })
-// Get All Products
-app.get('/products', (req: Request, res: Response) => {
-  res
-    .status(200)
-    .send(products)
-})
-// Search product by name
-app.get('/products/search', (req: Request, res: Response) => {
-  const q = req.query.q as string
-  const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
-
-  res
-    .status(200)
-    .send(search)
-})
-
-//----------------------------------Creating data----------------------------------
 // Create user
 app.post('/users', (req: Request, res: Response) => {
   const {id, email, password} :user = req.body 
@@ -54,6 +37,53 @@ app.post('/users', (req: Request, res: Response) => {
     .send(`Usuário ${email} cadastrado!`)
     // .send(users)
 })
+// Edit user by id
+app.put('/users/:id', (req: Request, res: Response) => {
+  const userId = req.params.id
+
+  const newId = req.body.id as string | undefined
+  const newEmail = req.body.email as string | undefined
+  const newPassword = req.body.password as string | undefined
+
+  const user = users.find(user => user.id === userId)
+
+  if(user) {
+    user.id = newId || user.id
+    user.email = newEmail || user.email
+    user.password = newPassword || user.password
+  }
+  res
+    .status(200)
+    .send('Usuário alterado!')
+})
+// Delete user by id
+app.delete('/users/:id', (req: Request, res: Response) => {
+  const userId = req.params.id
+  const userIndex = users.findIndex(user => user.id === userId)
+
+  if(userIndex >= 0) {
+    users.splice(userIndex, 1)
+  }
+  res
+    .status(200)
+    .send('Usuário excluído')
+})
+
+//----------------------------------Products----------------------------------
+// Get All Products
+app.get('/products', (req: Request, res: Response) => {
+  res
+    .status(200)
+    .send(products)
+})
+// Search product by name
+app.get('/products/search', (req: Request, res: Response) => {
+  const q = req.query.q as string
+  const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
+  res
+    .status(200)
+    .send(search)
+})
 // Create product
 app.post('/products', (req: Request, res: Response) => {
   const {id, name, price, category} :product = req.body
@@ -62,8 +92,58 @@ app.post('/products', (req: Request, res: Response) => {
   res
     .status(201)
     .send(`Produto '${name}' cadastrado!`)
-    // .send(products)
 })
+// Get Products by id
+app.get('/products/:id', (req: Request, res: Response) => {
+  const id = req.params.id;
+  const findProduct = products.filter(product => product.id === id)
+  res
+    .status(200)
+    .send(findProduct)
+})
+// Edit product by id
+app.put('/products/:id', (req: Request, res: Response) => {
+  const productId = req.params.id
+
+  const newId = req.body.id as string
+  const newName = req.body.name as string
+  const newPrice = req.body.price as number
+  const newCategory = req.body.category as Categories
+
+  const product = products.find(product => product.id === productId)
+
+  if(product) {
+    product.id = newId || product.id
+    product.name = newName || product.name
+    product.price = isNaN(newPrice) ? product.price : newPrice
+    product.category = newCategory || product.category
+  }
+  res
+    .status(200)
+    .send('Produto alterado!')
+})
+// Delete product by id
+app.delete('/products/:id', (req: Request, res: Response) => {
+  const productId = req.params.id
+  const indexProduct = products.findIndex(product => product.id === productId)
+  if(indexProduct >= 1) {
+    products.splice(indexProduct, 1)
+  }
+  res
+    .status(201)
+    .send('Produto excluído!')
+})
+
+//----------------------------------Pucharses----------------------------------
+// Get user Pucharses by User id
+app.get('/users/:id/pucharses/', (req: Request, res: Response) => {
+  const userId = req.params.id
+  const findPucharses = pucharses.filter(pucharse => pucharse.userId === userId)
+  res
+    .status(200)
+    .send(findPucharses)
+})
+
 // Create pucharse
 app.post('/pucharses', (req: Request, res: Response) => {
   const {userId, productId, quantity, totalPrice} = req.body
@@ -72,5 +152,4 @@ app.post('/pucharses', (req: Request, res: Response) => {
   res
     .status(201)
     .send(`Compra realizada com sucesso! Valor total: R$ ${totalPrice}`)
-    // .send(pucharses)
 })
