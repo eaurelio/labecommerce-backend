@@ -61,7 +61,7 @@ export const pucharses: pucharse[] = [
     totalPrice: 2500,
   },
   {
-    userId: '1',
+    userId: '2',
     productId: '2',
     quantity: 1,
     totalPrice: 3700,
