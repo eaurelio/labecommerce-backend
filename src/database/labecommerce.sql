@@ -30,4 +30,4 @@ SELECT * FROM users;
 SELECT * FROM products;
 
 drop table users;
-drop table product;
+drop table products;
