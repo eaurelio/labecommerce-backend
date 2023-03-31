@@ -23,9 +23,21 @@ app.get('/index', (req: Request, res: Response) => {
 //----------------------------------Users----------------------------------
 // Get All users
 app.get('/users', (req: Request, res: Response) => {
-  res
-    .status(200)
-    .send(users)
+  try {
+    res
+      .status(200)
+      .send(users)
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
 
 // Create user
@@ -34,6 +46,11 @@ app.post('/users', (req: Request, res: Response) => {
     const {id, email, password} :user = req.body 
     const newUser = {id, email, password}
 
+    if(!id) {
+      res
+        .status(400)
+        throw new Error('A id deve ser infomada')
+    }
     if(id !== undefined) {
       const existId = users.find(user => user.id === id)
       if(existId) {
@@ -41,6 +58,16 @@ app.post('/users', (req: Request, res: Response) => {
           .status(400)
           throw new Error('A id informada já existe')
       }
+    }
+    if(!email) {
+      res
+        .status(400)
+        throw new Error('Email deve ser informado!')
+    }
+    if(typeof email !== 'string') {
+      res
+        .status(400)
+        throw new Error('O email deve ser do tipo String')
     }
     if(email !== undefined) {
       const existEmail = users.find(user => user.email === email)
@@ -53,7 +80,7 @@ app.post('/users', (req: Request, res: Response) => {
     res
       .status(201)
       .send(`Usuário ${email} cadastrado!`)
-  }catch(error){
+  } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
         res.status(500)
@@ -68,42 +95,102 @@ app.post('/users', (req: Request, res: Response) => {
 
 // Edit user by id
 app.put('/users/:id', (req: Request, res: Response) => {
-  const userId = req.params.id
+  try {
+    const userId = req.params.id
+    const newEmail = req.body.email
+    const newPassword = req.body.password
 
-  const newId = req.body.id as string | undefined
-  const newEmail = req.body.email as string | undefined
-  const newPassword = req.body.password as string | undefined
+    const user = users.find(user => user.id === userId)
 
-  const user = users.find(user => user.id === userId)
+    if(!user) {
+      res
+        .status(400)
+        throw new Error('Usuário não encontrado!')
+    }
 
-  if(user) {
-    user.id = newId || user.id
-    user.email = newEmail || user.email
-    user.password = newPassword || user.password
-  }
-  res
-    .status(200)
-    .send('Usuário alterado!')
+    if(newEmail !== undefined) {
+      if(typeof newEmail !== 'string'){
+        res
+          .status(400)
+          throw new Error('O email deve ser do tipo String')
+      }
+    }
+    if(newPassword !== undefined) {
+      if(typeof newPassword !== 'string'){
+        res
+          .status(400)
+          throw new Error('A deve ser do tipo String')
+      }
+    }
+
+    if(user) {
+      user.email = newEmail || user.email
+      user.password = newPassword || user.password
+    }
+    res
+      .status(200)
+      .send('Usuário alterado!')
+
+  }catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
 // Delete user by id
 app.delete('/users/:id', (req: Request, res: Response) => {
-  const userId = req.params.id
-  const userIndex = users.findIndex(user => user.id === userId)
+  try {
+    const userId = req.params.id
+    const userIndex = users.findIndex(user => user.id === userId)
 
-  if(userIndex >= 0) {
-    users.splice(userIndex, 1)
-  }
-  res
-    .status(200)
-    .send('Usuário excluído')
+    if(userIndex === -1) {
+      res
+        .status(400)
+        throw new Error('Usuário não encontrado!')
+    }
+    else if(userIndex >= 0) {
+      users.splice(userIndex, 1)
+    }
+    res
+      .status(200)
+      .send('Usuário excluído')
+    } catch(error){
+      console.log(error)
+      if(res.statusCode === 200) {
+          res.status(500)
+        }
+        if(error instanceof Error) {
+          res.send(error.message)
+        }else {
+          res.send('Erro inesperado')
+        }
+      }
 })
 
 //----------------------------------Products----------------------------------
 // Get All Products
 app.get('/products', (req: Request, res: Response) => {
-  res
+  try{
+    res
     .status(200)
     .send(products)
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
 // Search product by name
 app.get('/products/search', (req: Request, res: Response) => {
@@ -121,7 +208,7 @@ app.get('/products/search', (req: Request, res: Response) => {
     res
       .status(200)
       .send(search)
-  }catch(error){
+  } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
         res.status(500)
@@ -168,55 +255,137 @@ app.post('/products', (req: Request, res: Response) => {
 
 // Get Products by id
 app.get('/products/:id', (req: Request, res: Response) => {
-  const id = req.params.id;
-  const findProduct = products.filter(product => product.id === id)
-  res
-    .status(200)
-    .send(findProduct)
+  try {
+    const id = req.params.id;
+    const findProduct = products.find(product => product.id === id)
+    if(!findProduct) {
+      res
+        .status(400)
+        throw new Error('Produto não encontrado!')
+    }
+    res
+      .status(200)
+      .send(findProduct)
+    
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
 
 // Edit product by id
 app.put('/products/:id', (req: Request, res: Response) => {
-  const productId = req.params.id
+  try {
+    const productId = req.params.id
+    const newName = req.body.name
+    const newPrice = req.body.price
+    const newCategory = req.body.category
 
-  const newId = req.body.id as string
-  const newName = req.body.name as string
-  const newPrice = req.body.price as number
-  const newCategory = req.body.category as Categories
+    const product = products.find(product => product.id === productId)
 
-  const product = products.find(product => product.id === productId)
+    if(!product) {
+      res
+        .status(400)
+        throw new Error('Produto não encontado!')
+    }
 
-  if(product) {
-    product.id = newId || product.id
-    product.name = newName || product.name
-    product.price = isNaN(newPrice) ? product.price : newPrice
-    product.category = newCategory || product.category
-  }
-  res
-    .status(200)
-    .send('Produto alterado!')
+    if(newName != undefined) {
+      if(typeof newName !== 'string'){
+        res
+          .status(400)
+          throw new Error('O nome deve ser uma String')
+      }
+    }
+
+    if(newPrice != undefined) {
+      if(typeof newPrice !== 'number'){
+        res
+          .status(400)
+          throw new Error('O preço deve ser um number')
+      }
+    }
+
+    if(product) {
+      product.name = newName || product.name
+      product.price = isNaN(newPrice) ? product.price : newPrice
+      product.category = newCategory || product.category
+    }
+    res
+      .status(200)
+      .send('Produto alterado!')
+
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
 
 // Delete product by id
 app.delete('/products/:id', (req: Request, res: Response) => {
-  const productId = req.params.id
-  const indexProduct = products.findIndex(product => product.id === productId)
-  if(indexProduct >= 1) {
-    products.splice(indexProduct, 1)
-  }
-  res
-    .status(201)
-    .send('Produto excluído!')
+  try {
+    const productId = req.params.id
+    const indexProduct = products.findIndex(product => product.id === productId)
+    if(indexProduct >= 1) {
+      products.splice(indexProduct, 1)
+    }
+    res
+      .status(201)
+      .send('Produto excluído!')
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
+
 
 //----------------------------------Pucharses----------------------------------
 // Get user Pucharses by User id
 app.get('/users/:id/pucharses/', (req: Request, res: Response) => {
-  const userId = req.params.id
-  const findPucharses = pucharses.filter(pucharse => pucharse.userId === userId)
-  res
-    .status(200)
-    .send(findPucharses)
+  try {
+    const userId = req.params.id
+    const pucharse = pucharses.find(pucharse => pucharse.userId === userId)
+
+    if(!pucharse) {
+      res
+        .status(400)
+        throw new Error('Nenhuma compra pro usuário informado!')
+    }
+    const findPucharses = pucharses.filter(pucharse => pucharse.userId === userId)
+    res
+      .status(200)
+      .send(findPucharses)
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
 })
 
 // Create pucharse
@@ -252,7 +421,8 @@ app.post('/pucharses', (req: Request, res: Response) => {
     res
       .status(201)
       .send(`Compra realizada com sucesso! Valor total: R$ ${totalPrice}`)
-  }catch(error){
+
+  } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
         res.status(500)
