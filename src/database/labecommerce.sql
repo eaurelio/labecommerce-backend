@@ -87,3 +87,32 @@ OFFSET 1;
 SELECT * FROM products
 WHERE price > 100 and price < 300
 ORDER BY price ASC;
+
+CREATE TABLE pucharses (
+  id TEXT PRIMARY KEY UNIQUE NOT NULL,
+  total_price REAL NOT NULL,
+  paid INTEGER NOT NULL,
+  delivered_at TEXT,
+  buyer_id TEXT NOT NULL,
+  Foreign Key (buyer_id) REFERENCES users(id)
+);
+DROP TABLE pucharses;
+INSERT INTO pucharses
+VALUES
+  ('1',120,0,NULL,'3'),
+  ('2',120,1,NULL,'2'),
+  ('3',90,0,NULL,'3'),
+  ('4',45,1,NULL,'4');
+
+Select * from users;
+
+UPDATE pucharses
+SET delivered_at = '2023-04-03 20:19:00'
+WHERE id = '3';
+
+SELECT
+  pucharses.total_price as 'Valor total',
+  users.email, pucharses.paid as 'Pago'
+FROM pucharses
+INNER JOIN users
+ON pucharses.buyer_id = users.id;
