@@ -1,15 +1,16 @@
 -- Active: 1679961137506@@127.0.0.1@3306
 CREATE TABLE users (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL, 
   password TEXT NOT NULL
 );
 
-INSERT INTO users (id, email, password)
+INSERT INTO users (id, name, email, password)
 VALUES
-  ('1', 'fulano@mail.com', '564456456'),
-  ('2', 'beotrano@mail.com', '765127845'),
-  ('3', 'ciclano@mail.com', '65445263456dfsdfsfd');
+  ('1', 'Fulano', 'fulano@mail.com', '564456456'),
+  ('2', 'Beotrano', 'beotrano@mail.com', '765127845'),
+  ('3', 'Ciclano', 'ciclano@mail.com', '65445263456dfsdfsfd');
 
 CREATE TABLE products (
   id TEXT PRIMARY KEY UNIQUE NOT NULL,
@@ -44,8 +45,8 @@ SELECT * FROM products
 WHERE name LIKE 'monitor';
 
 -- Create User
-INSERT INTO users (id, email, password)
-VALUES ('4', 'edson.exe@outlook.com', '65sdf564fsd456');
+INSERT INTO users (id, name, email, password)
+VALUES ('4', 'Edson', 'edson.exe@outlook.com', '65sdf564fsd456');
 
 -- Create Product
 INSERT INTO products (id, name, price, category)
@@ -116,3 +117,30 @@ SELECT
 FROM pucharses
 INNER JOIN users
 ON pucharses.buyer_id = users.id;
+
+-- relacoes-sql-ii
+
+CREATE TABLE pucharses_products (
+  purchase_id TEXT NOT NULL,
+  product_id TEXT NOT NULL,
+  quantity INTEGER NOT NULL,
+
+  Foreign Key (purchase_id) REFERENCES pucharses(id),
+  Foreign Key (product_id) REFERENCES products(id)
+);
+
+INSERT INTO pucharses_products
+VALUES
+  ('2','1','1'),
+  ('1','1','1'),
+  ('3','2','1'),
+  ('4','5','1');
+
+SELECT pucharses.id, users.name, products.name, products.price, pucharses_products.quantity, pucharses.total_price
+FROM users
+INNER JOIN pucharses
+ON users.id = pucharses.buyer_id
+INNER JOIN pucharses_products
+ON pucharses.id = pucharses_products.purchase_id
+INNER JOIN products
+ON pucharses_products.product_id = products.id;
