@@ -7,6 +7,7 @@ app.use(cors());
 // Dados da aplicação
 import { users, products, pucharses } from './database';
 import { user, product, pucharse, Categories } from './types/types'; 
+import { db } from './database/knex';
 
 
 app.listen(3003, () => {
@@ -22,64 +23,134 @@ app.get('/index', (req: Request, res: Response) => {
 
 //----------------------------------Users----------------------------------
 // Get All users
-app.get('/users', (req: Request, res: Response) => {
+// app.get('/users', (req: Request, res: Response) => {
+//   try {
+//     res
+//       .status(200)
+//       .send(users)
+//   } catch(error){
+//     console.log(error)
+//     if(res.statusCode === 200) {
+//         res.status(500)
+//       }
+//       if(error instanceof Error) {
+//         res.send(error.message)
+//       }else {
+//         res.send('Erro inesperado')
+//       }
+//     }
+// })
+
+app.get('/users', async (req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+      SELECT * FROM users
+    `)
     res
       .status(200)
-      .send(users)
+      .send(result)
+
   } catch(error){
-    console.log(error)
-    if(res.statusCode === 200) {
-        res.status(500)
-      }
-      if(error instanceof Error) {
-        res.send(error.message)
-      }else {
-        res.send('Erro inesperado')
-      }
+        console.log(error)
+        if(res.statusCode === 200) {
+            res.status(500)
+          }
+          if(error instanceof Error) {
+            res.send(error.message)
+          }else {
+            res.send('Erro inesperado')
+          }
     }
 })
 
 // Create user
-app.post('/users', (req: Request, res: Response) => {
-  try{
-    const {id, email, password} :user = req.body 
-    const newUser = {id, email, password}
+// app.post('/users', (req: Request, res: Response) => {
+//   try{
+//     const {id, email, password} :user = req.body 
+//     const newUser = {id, email, password}
 
-    if(!id) {
+//     if(!id) {
+//       res
+//         .status(400)
+//         throw new Error('A id deve ser infomada')
+//     }
+//     if(id !== undefined) {
+//       const existId = users.find(user => user.id === id)
+//       if(existId) {
+//         res
+//           .status(400)
+//           throw new Error('A id informada já existe')
+//       }
+//     }
+//     if(!email) {
+//       res
+//         .status(400)
+//         throw new Error('Email deve ser informado!')
+//     }
+//     if(typeof email !== 'string') {
+//       res
+//         .status(400)
+//         throw new Error('O email deve ser do tipo String')
+//     }
+//     if(email !== undefined) {
+//       const existEmail = users.find(user => user.email === email)
+//       if(existEmail) {
+//         res.status(400)
+//         throw new Error('Email já existente')
+//       }
+//     }
+//     users.push(newUser)
+//     res
+//       .status(201)
+//       .send(`Usuário ${email} cadastrado!`)
+//   } catch(error){
+//     console.log(error)
+//     if(res.statusCode === 200) {
+//         res.status(500)
+//       }
+//       if(error instanceof Error) {
+//         res.send(error.message)
+//       }else {
+//         res.send('Erro inesperado')
+//       }
+//     }
+// })
+
+app.post('/users', async (req: Request, res: Response) => {
+  try {
+    // const id = req.body.id;
+    const name = req.body.name;
+    const email = req.body.email;
+    const password = req.body.password;
+    const createdAt = req.body.createdAt;
+
+    if (name.length < 3) {
       res
         .status(400)
-        throw new Error('A id deve ser infomada')
+        throw new Error ('Preencha o name corretamente!')
     }
-    if(id !== undefined) {
-      const existId = users.find(user => user.id === id)
-      if(existId) {
-        res
-          .status(400)
-          throw new Error('A id informada já existe')
-      }
-    }
-    if(!email) {
+
+    const [isEmailCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE email like "${email}"
+    `)
+    if(isEmailCreated) {
       res
         .status(400)
-        throw new Error('Email deve ser informado!')
+        throw new Error ('Email já cadastrado!')
     }
-    if(typeof email !== 'string') {
+
+    if(password.length < 8) {
       res
         .status(400)
-        throw new Error('O email deve ser do tipo String')
+        throw new Error ('password deve ter pelo menos 8 caracteres!')
     }
-    if(email !== undefined) {
-      const existEmail = users.find(user => user.email === email)
-      if(existEmail) {
-        res.status(400)
-        throw new Error('Email já existente')
-      }
-    }
-    users.push(newUser)
+
     res
-      .status(201)
-      .send(`Usuário ${email} cadastrado!`)
+      .status(200)
+      .send()
+
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -90,7 +161,7 @@ app.post('/users', (req: Request, res: Response) => {
       }else {
         res.send('Erro inesperado')
       }
-    }
+  }
 })
 
 // Edit user by id
@@ -175,11 +246,31 @@ app.delete('/users/:id', (req: Request, res: Response) => {
 
 //----------------------------------Products----------------------------------
 // Get All Products
-app.get('/products', (req: Request, res: Response) => {
-  try{
+// app.get('/products', (req: Request, res: Response) => {
+//   try{
+//     res
+//     .status(200)
+//     .send(products)
+//   } catch(error){
+//     console.log(error)
+//     if(res.statusCode === 200) {
+//         res.status(500)
+//       }
+//       if(error instanceof Error) {
+//         res.send(error.message)
+//       }else {
+//         res.send('Erro inesperado')
+//       }
+//     }
+// })
+app.get('/products', async (req: Request, res: Response) => {
+  try {
+    const result = await db.raw(`
+      SELECT * FROM products
+    `)
     res
-    .status(200)
-    .send(products)
+      .status(200)
+      .send(result)
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -192,22 +283,59 @@ app.get('/products', (req: Request, res: Response) => {
       }
     }
 })
-// Search product by name
-app.get('/products/search', (req: Request, res: Response) => {
-  try{
-    const q = req.query.q as string
 
-    if(q.length === 0) {
-      // console.log('ne')
+// Search product by name
+// app.get('/products/search', (req: Request, res: Response) => {
+//   try{
+//     const q = req.query.q as string
+
+//     if(q.length === 0) {
+//       // console.log('ne')
+//       res
+//         .status(400)
+//         throw new Error('A query deve ter pelo menos um caractere')
+//     }
+
+//     const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
+//     res
+//       .status(200)
+//       .send(search)
+//   } catch(error){
+//     console.log(error)
+//     if(res.statusCode === 200) {
+//         res.status(500)
+//       }
+//       if(error instanceof Error) {
+//         res.send(error.message)
+//       }else {
+//         res.send('Erro inesperado')
+//       }
+//     }
+// })
+app.get('/products/search/', async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q;
+
+    if (query?.length === 0) {
       res
         .status(400)
-        throw new Error('A query deve ter pelo menos um caractere')
+        throw new Error('Informe pelo menos um caractere para a busca!')
+    }
+    const [result] = await db.raw(`
+      SELECT * FROM products
+      WHERE name like "%${query}%"
+    `)
+
+    if(!result) {
+      res
+        .status(400)
+        throw new Error('Produto não localizado!')
     }
 
-    const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
     res
       .status(200)
-      .send(search)
+      .send(result)
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
