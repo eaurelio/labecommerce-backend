@@ -7,6 +7,7 @@ CREATE TABLE users (
   createdAt TEXT
 );
 
+DROP TABLE products;
 CREATE TABLE products (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   name TEXT NOT NULL,
@@ -33,6 +34,7 @@ CREATE TABLE pucharses_products (
   Foreign Key (product_id) REFERENCES products(id)
 );
 
+SELECT * from pucharses_products;
 
 --------------------------------------------------------------------------------------
 INSERT INTO users (id, name, email, password, createdAt)
@@ -44,6 +46,7 @@ VALUES
   ('5', 'Edson', 'edson@mail.com', 'ioujmhndff', '2023-04-13 01:02:15'),
   ('6', 'Gianini', 'giani@mail.com', '87jhkjbsdf', '2023-04-13 01:02:15');
 
+delete from pucharses;
 
 INSERT INTO products (id, name, price, description)
 VALUES
@@ -64,6 +67,7 @@ VALUES
   ('5', '5', 89.90, '2023-04-13 01:06:10',1),
   ('6', '1', 300, '2023-04-13 01:06:10',1);
 
+delete from pucharses_products;
 INSERT INTO pucharses_products
 VALUES
   ('1', '1', 1),
