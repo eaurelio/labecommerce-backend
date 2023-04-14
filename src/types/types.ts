@@ -1,12 +1,8 @@
 export enum Categories {
-  KEYBOARD = 'Teclados',
-  ELETRIC_GUITAR = 'Guitarras',
-  ACOUSTIC_GUITAR = 'Violões',
-  BASS = 'Baixos',
-  AMP = 'Amplificadores',
-  EFFECTS_PROCESSOR = 'Processadores de efeito',
-  ACCESSORIES = 'Acessórios',
-  VIOLIN = 'Violinos'
+  HARDWARE = 'hardware',
+  SOFTWARE = 'software',
+  ACESSORIOS = 'acessorios',
+  PERIFERICOS = 'perifericos'
 }
 
 export type user = {
@@ -19,7 +15,8 @@ export type product = {
   id: string,
   name: string,
   price: number,
-  category: Categories
+  description: Categories
+  imageUrl: string
 }
 
 export type pucharse = {

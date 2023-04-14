@@ -5,8 +5,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 // Dados da aplicação
-import { users, products, pucharses } from './database';
+// import { users, products, pucharses } from './database';
 import { user, product, pucharse, Categories } from './types/types'; 
+import { db } from './database/knex';
 
 
 app.listen(3003, () => {
@@ -22,64 +23,84 @@ app.get('/index', (req: Request, res: Response) => {
 
 //----------------------------------Users----------------------------------
 // Get All users
-app.get('/users', (req: Request, res: Response) => {
+
+app.get('/users', async (req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+      SELECT * FROM users
+    `)
     res
       .status(200)
-      .send(users)
+      .send(result)
+
   } catch(error){
-    console.log(error)
-    if(res.statusCode === 200) {
-        res.status(500)
-      }
-      if(error instanceof Error) {
-        res.send(error.message)
-      }else {
-        res.send('Erro inesperado')
-      }
+        console.log(error)
+        if(res.statusCode === 200) {
+            res.status(500)
+          }
+          if(error instanceof Error) {
+            res.send(error.message)
+          }else {
+            res.send('Erro inesperado')
+          }
     }
 })
 
 // Create user
-app.post('/users', (req: Request, res: Response) => {
-  try{
-    const {id, email, password} :user = req.body 
-    const newUser = {id, email, password}
 
-    if(!id) {
-      res
-        .status(400)
-        throw new Error('A id deve ser infomada')
-    }
+app.post('/users', async (req: Request, res: Response) => {
+  try {
+    const {id, name, email, password, createdAt} = req.body;
+
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE id = "${id}"
+    `)
+
     if(id !== undefined) {
-      const existId = users.find(user => user.id === id)
-      if(existId) {
-        res
-          .status(400)
-          throw new Error('A id informada já existe')
-      }
-    }
-    if(!email) {
-      res
-        .status(400)
-        throw new Error('Email deve ser informado!')
-    }
-    if(typeof email !== 'string') {
-      res
-        .status(400)
-        throw new Error('O email deve ser do tipo String')
-    }
-    if(email !== undefined) {
-      const existEmail = users.find(user => user.email === email)
-      if(existEmail) {
+      if(isIdCreated) {
         res.status(400)
-        throw new Error('Email já existente')
+        throw new Error('id já cadastrada!')
       }
+    } else {
+      res.status(400)
+      throw new Error('Informe a id')
     }
-    users.push(newUser)
+
+
+    if (name.length < 3) {
+      res
+        .status(400)
+        throw new Error ('Preencha o name corretamente!')
+    }
+
+    const [isEmailCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE email like "${email}"
+    `)
+    if(isEmailCreated) {
+      res
+        .status(400)
+        throw new Error ('Email já cadastrado!')
+    }
+
+    if(password.length < 8) {
+      res
+        .status(400)
+        throw new Error ('password deve ter pelo menos 8 caracteres!')
+    }
+
+    await db.raw(`
+      INSERT INTO users (id, name, email, password, createdAt)
+      VALUES
+        ("${id}", "${name}","${email}","${password}", "${createdAt}")
+    `)
+
     res
       .status(201)
-      .send(`Usuário ${email} cadastrado!`)
+      .send("Cadastro realizado com sucesso!")
+
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -90,48 +111,65 @@ app.post('/users', (req: Request, res: Response) => {
       }else {
         res.send('Erro inesperado')
       }
-    }
+  }
 })
 
 // Edit user by id
-app.put('/users/:id', (req: Request, res: Response) => {
+app.put('/users/:id', async (req: Request, res: Response) => {
   try {
-    const userId = req.params.id
-    const newEmail = req.body.email
-    const newPassword = req.body.password
+    const id = req.params.id;
+    const {name, email, password} = req.body;
 
-    const user = users.find(user => user.id === userId)
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE id = "${id}"
+    `)
 
-    if(!user) {
+    if(!isIdCreated) {
       res
         .status(400)
         throw new Error('Usuário não encontrado!')
     }
 
-    if(newEmail !== undefined) {
-      if(typeof newEmail !== 'string'){
-        res
-          .status(400)
-          throw new Error('O email deve ser do tipo String')
-      }
-    }
-    if(newPassword !== undefined) {
-      if(typeof newPassword !== 'string'){
-        res
-          .status(400)
-          throw new Error('A deve ser do tipo String')
-      }
+    if(!name || name.length < 3) {
+      res
+        .status(400)
+        throw new Error('name deve ser informado corretamente')
     }
 
-    if(user) {
-      user.email = newEmail || user.email
-      user.password = newPassword || user.password
+    if(!email) {
+      res
+        .status(400)
+        throw new Error('O email deve ser informado')
     }
+
+    if(typeof email !== 'string'){
+      res
+        .status(400)
+        throw new Error('O email deve ser do tipo String')
+    }
+
+    if(!password) {
+      res
+      .status(400)
+      throw new Error('password não informado')
+    }
+    if(typeof password !== 'string'){
+      res
+        .status(400)
+        throw new Error('A senha deve ser do tipo String')
+    }
+
+    await db.raw(`
+      UPDATE users
+      SET name = "${name}", email = "${email}", password = "${password}"
+      WHERE id = "${id}"
+    `)
     res
       .status(200)
       .send('Usuário alterado!')
 
-  }catch(error){
+  } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
         res.status(500)
@@ -144,22 +182,30 @@ app.put('/users/:id', (req: Request, res: Response) => {
     }
 })
 // Delete user by id
-app.delete('/users/:id', (req: Request, res: Response) => {
+app.delete('/users/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.params.id
-    const userIndex = users.findIndex(user => user.id === userId)
 
-    if(userIndex === -1) {
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE id = "${userId}"
+    `)
+
+    if(!isIdCreated) {
       res
         .status(400)
-        throw new Error('Usuário não encontrado!')
+        throw new Error('Usuário (id) não localizado!')
     }
-    else if(userIndex >= 0) {
-      users.splice(userIndex, 1)
-    }
+
+    await db.raw(`
+      DELETE FROM USERS
+      WHERE id = "${userId}"
+    `)
+
     res
       .status(200)
       .send('Usuário excluído')
+
     } catch(error){
       console.log(error)
       if(res.statusCode === 200) {
@@ -175,11 +221,31 @@ app.delete('/users/:id', (req: Request, res: Response) => {
 
 //----------------------------------Products----------------------------------
 // Get All Products
-app.get('/products', (req: Request, res: Response) => {
-  try{
+// app.get('/products', (req: Request, res: Response) => {
+//   try{
+//     res
+//     .status(200)
+//     .send(products)
+//   } catch(error){
+//     console.log(error)
+//     if(res.statusCode === 200) {
+//         res.status(500)
+//       }
+//       if(error instanceof Error) {
+//         res.send(error.message)
+//       }else {
+//         res.send('Erro inesperado')
+//       }
+//     }
+// })
+app.get('/products', async (req: Request, res: Response) => {
+  try {
+    const result = await db.raw(`
+      SELECT * FROM products
+    `)
     res
-    .status(200)
-    .send(products)
+      .status(200)
+      .send(result)
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -192,22 +258,59 @@ app.get('/products', (req: Request, res: Response) => {
       }
     }
 })
-// Search product by name
-app.get('/products/search', (req: Request, res: Response) => {
-  try{
-    const q = req.query.q as string
 
-    if(q.length === 0) {
-      // console.log('ne')
+// Search product by name
+// app.get('/products/search', (req: Request, res: Response) => {
+//   try{
+//     const q = req.query.q as string
+
+//     if(q.length === 0) {
+//       // console.log('ne')
+//       res
+//         .status(400)
+//         throw new Error('A query deve ter pelo menos um caractere')
+//     }
+
+//     const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
+//     res
+//       .status(200)
+//       .send(search)
+//   } catch(error){
+//     console.log(error)
+//     if(res.statusCode === 200) {
+//         res.status(500)
+//       }
+//       if(error instanceof Error) {
+//         res.send(error.message)
+//       }else {
+//         res.send('Erro inesperado')
+//       }
+//     }
+// })
+app.get('/products/search/', async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q;
+
+    if (query?.length === 0) {
       res
         .status(400)
-        throw new Error('A query deve ter pelo menos um caractere')
+        throw new Error('Informe pelo menos um caractere para a busca!')
+    }
+    const [result] = await db.raw(`
+      SELECT * FROM products
+      WHERE name like "%${query}%"
+    `)
+
+    if(!result) {
+      res
+        .status(400)
+        throw new Error('Produto não localizado!')
     }
 
-    const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
     res
       .status(200)
-      .send(search)
+      .send(result)
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -222,12 +325,14 @@ app.get('/products/search', (req: Request, res: Response) => {
 })
 
 // Create product
-app.post('/products', (req: Request, res: Response) => {
+app.post('/products', async (req: Request, res: Response) => {
   try{
-    const {id, name, price, category} :product = req.body
-    const newProduct = {id, name, price, category}
+    const {id, name, price, description, imageUrl} :product = req.body
 
-    const existId = products.find(product => product.id === id)
+    const [existId] = await db.raw(`
+      SELECT * FROM products
+      WHERE id = "${id}"
+    `)
     
     if(id !== undefined) {
       if(existId) {
@@ -235,10 +340,41 @@ app.post('/products', (req: Request, res: Response) => {
         throw new Error('id do produto informado já cadastrado!')
       }
     }
-    products.push(newProduct)
+
+    if(name.length < 3) {
+      res
+        .status(400)
+        throw new Error('Informe um nome válido!')
+    }
+    if (!price) {
+      res
+        .status(400)
+        throw new Error('price deve ser informado!')
+    }
+    if (typeof price !== 'number') {
+      res
+        .status(400)
+        throw new Error('price deve ser numérico!')
+    }
+    if (!description) {
+      res
+        .status(400)
+        throw new Error('description deve ser informada!')
+    }
+    if (!imageUrl) {
+      res
+        .status(400)
+        throw new Error('imageUrl deve ser informada!')
+    }
+
+    await db.raw(`
+      INSERT INTO products (id, name, price, description, imageUrl)
+      VALUES("${id}","${name}","${price}","${description}","${imageUrl}");
+    `)
+
     res
       .status(201)
-      .send(`Produto '${name}' cadastrado!`)
+      .send("Produto cadastrado com sucesso")
     
   }catch(error){
     console.log(error)
@@ -254,18 +390,23 @@ app.post('/products', (req: Request, res: Response) => {
 })
 
 // Get Products by id
-app.get('/products/:id', (req: Request, res: Response) => {
+app.get('/products/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const findProduct = products.find(product => product.id === id)
-    if(!findProduct) {
+    
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM products
+      WHERE id = "${id}"
+    `)
+
+    if(!isIdCreated) {
       res
         .status(400)
         throw new Error('Produto não encontrado!')
     }
     res
       .status(200)
-      .send(findProduct)
+      .send(isIdCreated)
     
   } catch(error){
     console.log(error)
@@ -281,42 +422,56 @@ app.get('/products/:id', (req: Request, res: Response) => {
 })
 
 // Edit product by id
-app.put('/products/:id', (req: Request, res: Response) => {
+app.put('/products/:id', async (req: Request, res: Response) => {
   try {
-    const productId = req.params.id
-    const newName = req.body.name
-    const newPrice = req.body.price
-    const newCategory = req.body.category
+    const id = req.params.id
+    const {name, price, description, imageUrl} = req.body
 
-    const product = products.find(product => product.id === productId)
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM products
+      WHERE id = "${id}"
+    `)
 
-    if(!product) {
+    if(!isIdCreated) {
       res
         .status(400)
         throw new Error('Produto não encontado!')
     }
 
-    if(newName != undefined) {
-      if(typeof newName !== 'string'){
+    if(name != undefined) {
+      if(typeof name !== 'string'){
         res
           .status(400)
           throw new Error('O nome deve ser uma String')
       }
     }
 
-    if(newPrice != undefined) {
-      if(typeof newPrice !== 'number'){
+    if(price != undefined) {
+      if(typeof price !== 'number'){
         res
           .status(400)
           throw new Error('O preço deve ser um number')
       }
     }
 
-    if(product) {
-      product.name = newName || product.name
-      product.price = isNaN(newPrice) ? product.price : newPrice
-      product.category = newCategory || product.category
+    if(description !== undefined) {
+      if(typeof description !== 'string') {
+        res.status(400)
+        throw new Error('description deve ser uma string')
+      }
     }
+
+    const newName = name || isIdCreated.name
+    const newPrice = price || isIdCreated.price
+    const newDescription = description || isIdCreated.description
+    const newImg = imageUrl || isIdCreated.imageUrl
+
+    await db.raw(`
+      UPDATE products
+      SET name = "${newName}", price = "${newPrice}", description = "${newDescription}", imageUrl = "${newImg}"
+      WHERE id = "${id}"
+    `)
+
     res
       .status(200)
       .send('Produto alterado!')
@@ -335,13 +490,25 @@ app.put('/products/:id', (req: Request, res: Response) => {
 })
 
 // Delete product by id
-app.delete('/products/:id', (req: Request, res: Response) => {
+app.delete('/products/:id', async (req: Request, res: Response) => {
   try {
     const productId = req.params.id
-    const indexProduct = products.findIndex(product => product.id === productId)
-    if(indexProduct >= 1) {
-      products.splice(indexProduct, 1)
+
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM products
+      WHERE id = "${productId}"
+    `)
+
+    if(!isIdCreated) {
+      res.status(400)
+      throw new Error('produto não encontrado')
     }
+
+    await db.raw(`
+      DELETE FROM products
+      WHERE id = "${productId}"
+    `)
+
     res
       .status(201)
       .send('Produto excluído!')
@@ -360,21 +527,60 @@ app.delete('/products/:id', (req: Request, res: Response) => {
 
 
 //----------------------------------Pucharses----------------------------------
-// Get user Pucharses by User id
-app.get('/users/:id/pucharses/', (req: Request, res: Response) => {
-  try {
-    const userId = req.params.id
-    const pucharse = pucharses.find(pucharse => pucharse.userId === userId)
+// Get all pucharses
 
-    if(!pucharse) {
-      res
-        .status(400)
-        throw new Error('Nenhuma compra pro usuário informado!')
-    }
-    const findPucharses = pucharses.filter(pucharse => pucharse.userId === userId)
+app.get('/pucharses', async (req: Request, res: Response) => {
+  try {
+    const result = await db.raw(`
+      SELECT * from pucharses
+    `)
     res
       .status(200)
-      .send(findPucharses)
+      .send(result)
+
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
+})
+
+
+// Get user Pucharses by User id
+app.get('/users/:id/pucharses/', async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id
+
+    const [isIdCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE id = "${userId}"
+    `)
+
+    if(!isIdCreated) {
+      res.status(400)
+      throw new Error('id do usuário não encontrada')
+    }
+
+    const [pucharses] = await db.raw(`
+      SELECT * FROM pucharses
+      WHERE buyer_id = "${userId}"
+    `)
+
+    if(!pucharses) {
+      res.status(400)
+      throw new Error('não foram encontradas compras para o usuário informado')
+    }
+
+    res
+      .status(200)
+      .send(pucharses)
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -389,39 +595,114 @@ app.get('/users/:id/pucharses/', (req: Request, res: Response) => {
 })
 
 // Create pucharse
-app.post('/pucharses', (req: Request, res: Response) => {
+app.post('/pucharses', async (req: Request, res: Response) => {
   try{
-    const {userId, productId, quantity, totalPrice} = req.body
-    const newPucharse = {userId, productId, quantity, totalPrice}
+    const {id, buyer, totalPrice, createdAt, paid} = req.body
 
-    const existUserId = users.find(user => user.id === userId)
-    const existProductId = products.find(product => product.id === productId)
+    const [existsId] = await db.raw(`
+      SELECT * FROM pucharses
+      WHERE id = ${id}
+    `)
+    const [existsBuyer] = await db.raw(`
+      SELECT * FROM users
+      WHERE id = ${buyer}
+    `)
 
-    if(userId !== undefined) {
-      if(!existUserId) {
+    if(id !== undefined) {
+      if(existsId) {
         res.status(400)
-        throw new Error('Usuário informado não está cadastrado!')
+        throw new Error('Compra já cadastrada')
       }
     }
-    if(productId !== undefined) {
-      if(!existProductId) {
-        res.status(400)
-        throw new Error('Produto informado não está cadastrado!')
-      }
+    if(!id) {
+      res.status(400)
+      throw new Error('id deve ser informada')
     }
-    if(existProductId !== undefined) {
-      const pTotalPrice = existProductId.price * quantity
-      if(totalPrice !== pTotalPrice){
-        res.status(400)
-        throw new Error('O valor total da compra incorreto!')
-      }
+    if(!buyer) {
+      res.status(400)
+      throw new Error('buyer deve ser informada')
+    }
+    if(!existsBuyer) {
+      res.status(400)
+      throw new Error('comprador não cadastrado')
+    }
+    if(!totalPrice) {
+      res.status(400)
+      throw new Error('totalprice deve ser informada')
+    }
+    if(typeof totalPrice !== 'number') {
+      res.status(400)
+      throw new Error('totalprice deve ser numérico')
+    }
+    if(!createdAt) {
+      res.status(400)
+      throw new Error('createdAt deve ser informada')
+    }
+    if(!paid) {
+      res.status(400)
+      throw new Error('paid deve ser informada')
     }
 
-    pucharses.push(newPucharse)
+    await db.raw(`
+      INSERT INTO pucharses
+      VALUES
+        ("${id}","${buyer}",${totalPrice},"${createdAt}",${paid})
+    `)
+    
     res
       .status(201)
-      .send(`Compra realizada com sucesso! Valor total: R$ ${totalPrice}`)
+      .send(`Compra cadastrada com sucesso`)
 
+  } catch(error){
+    console.log(error)
+    if(res.statusCode === 200) {
+        res.status(500)
+      }
+      if(error instanceof Error) {
+        res.send(error.message)
+      }else {
+        res.send('Erro inesperado')
+      }
+    }
+})
+
+app.delete('/users/:id/pucharses/', async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id
+
+    const [isUserIdCreated] = await db.raw(`
+      SELECT * FROM users
+      WHERE id ="${userId}"
+    `)
+
+    if(!isUserIdCreated) {
+      res.status(400)
+      throw new Error('id do usuário não encontrada!')
+    }
+
+    const [pucharsesById] = await db.raw(`
+      SELECT * FROM pucharses
+      where buyer_id = "${userId}"
+    `)
+
+    if(!pucharsesById) {
+      res.status(400)
+      throw new Error('não foram encontradas compras para a id informada')
+    }
+
+    await db.raw(`
+      DELETE FROM pucharses_products
+      WHERE purchase_id = "${pucharsesById.id}"
+    `)
+
+    await db.raw(`
+      DELETE FROM pucharses
+      WHERE buyer_id = "${userId}"
+    `)
+
+    res
+      .status(200)
+      .send("compras excluídas com sucesso")
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
