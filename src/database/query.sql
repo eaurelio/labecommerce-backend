@@ -18,12 +18,14 @@ CREATE TABLE products (
 
 CREATE TABLE purchases (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  buyer_id TEXT NOT NULL,
+  buyer TEXT NOT NULL,
   total_price REAL NOT NULL,
   created_at TEXT,
   paid INTEGER NOT NULL,
-  Foreign Key (buyer_id) REFERENCES users(id)
+  Foreign Key (buyer) REFERENCES users(id)
 );
+
+drop table purchases_products;
 
 select * from products;
 select * from purchases_products;
@@ -33,7 +35,7 @@ CREATE TABLE purchases_products (
   product_id TEXT NOT NULL,
   quantity REAL NOT NULL,
 
-  Foreign Key (purchase_id) REFERENCES pucharses(id),
+  Foreign Key (purchase_id) REFERENCES purchases(id),
   Foreign Key (product_id) REFERENCES products(id)
 );
 
@@ -59,7 +61,7 @@ VALUES
   ('6', 'SUPORTE DE PAREDE P MONITOR', 89.90, 'HARDWARE'),
   ('7', 'RINGLIGHT SMALL', 33.50, 'HARDWARE');
 
-INSERT INTO purchases (id, buyer_id, total_price, created_at, paid)
+INSERT INTO purchases (id, buyer, total_price, created_at, paid)
 VALUES
   ('1', '6', 120, '2023-04-13 01:06:10',1),
   ('2', '4', 90, '2023-04-13 01:06:10',1),
