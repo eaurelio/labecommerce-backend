@@ -16,7 +16,7 @@ CREATE TABLE products (
   imageUrl TEXT
 );
 
-CREATE TABLE pucharses (
+CREATE TABLE purchases (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   buyer_id TEXT NOT NULL,
   total_price REAL NOT NULL,
@@ -25,7 +25,10 @@ CREATE TABLE pucharses (
   Foreign Key (buyer_id) REFERENCES users(id)
 );
 
-CREATE TABLE pucharses_products (
+select * from products;
+select * from purchases_products;
+
+CREATE TABLE purchases_products (
   purchase_id TEXT NOT NULL,
   product_id TEXT NOT NULL,
   quantity REAL NOT NULL,
@@ -34,7 +37,7 @@ CREATE TABLE pucharses_products (
   Foreign Key (product_id) REFERENCES products(id)
 );
 
-SELECT * from pucharses_products;
+SELECT * from purchases_products;
 
 --------------------------------------------------------------------------------------
 INSERT INTO users (id, name, email, password, createdAt)
@@ -46,8 +49,6 @@ VALUES
   ('5', 'Edson', 'edson@mail.com', 'ioujmhndff', '2023-04-13 01:02:15'),
   ('6', 'Gianini', 'giani@mail.com', '87jhkjbsdf', '2023-04-13 01:02:15');
 
-delete from pucharses;
-
 INSERT INTO products (id, name, price, description)
 VALUES
   ('1', 'TECLADO', 120, 'HARDWARE'),
@@ -58,7 +59,7 @@ VALUES
   ('6', 'SUPORTE DE PAREDE P MONITOR', 89.90, 'HARDWARE'),
   ('7', 'RINGLIGHT SMALL', 33.50, 'HARDWARE');
 
-INSERT INTO pucharses (id, buyer_id, total_price, created_at, paid)
+INSERT INTO purchases (id, buyer_id, total_price, created_at, paid)
 VALUES
   ('1', '6', 120, '2023-04-13 01:06:10',1),
   ('2', '4', 90, '2023-04-13 01:06:10',1),
@@ -68,7 +69,7 @@ VALUES
   ('6', '1', 300, '2023-04-13 01:06:10',1);
 
 delete from pucharses_products;
-INSERT INTO pucharses_products
+INSERT INTO purchases_products
 VALUES
   ('1', '1', 1),
   ('2', '2', 1),
