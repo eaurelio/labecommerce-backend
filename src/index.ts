@@ -207,30 +207,35 @@ app.delete('/users/:id', async (req: Request, res: Response) => {
 })
 
 //----------------------------------Products----------------------------------
-// Get All Products
-// app.get('/products', (req: Request, res: Response) => {
-//   try{
-//     res
-//     .status(200)
-//     .send(products)
-//   } catch(error){
-//     console.log(error)
-//     if(res.statusCode === 200) {
-//         res.status(500)
-//       }
-//       if(error instanceof Error) {
-//         res.send(error.message)
-//       }else {
-//         res.send('Erro inesperado')
-//       }
-//     }
-// })
-app.get('/products', async (req: Request, res: Response) => {
+// Get Products
+app.get('/products/', async (req: Request, res: Response) => {
   try {
+    const query = req.query.q;
+
+    if(query) {
+      if (query?.length === 0) {
+        res
+          .status(400)
+          throw new Error('Informe pelo menos um caractere para a busca!')
+      }
+      const [result] = await db('products').where("name","like",`%${query}%`)
+  
+      if(!result) {
+        res
+          .status(400)
+          throw new Error('Produto não localizado!')
+      }
+      res
+      .status(200)
+      .send(result)
+      return
+    }
+
     const result = await db('products')
     res
       .status(200)
-      .send(result)
+      .send(result)    
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -244,55 +249,22 @@ app.get('/products', async (req: Request, res: Response) => {
     }
 })
 
-// Search product by name
-// app.get('/products/search', (req: Request, res: Response) => {
-//   try{
-//     const q = req.query.q as string
-
-//     if(q.length === 0) {
-//       // console.log('ne')
-//       res
-//         .status(400)
-//         throw new Error('A query deve ter pelo menos um caractere')
-//     }
-
-//     const search = products.filter(product => product.name.toLocaleLowerCase().includes(q.toLowerCase()))
-//     res
-//       .status(200)
-//       .send(search)
-//   } catch(error){
-//     console.log(error)
-//     if(res.statusCode === 200) {
-//         res.status(500)
-//       }
-//       if(error instanceof Error) {
-//         res.send(error.message)
-//       }else {
-//         res.send('Erro inesperado')
-//       }
-//     }
-// })
-app.get('/products/search/', async (req: Request, res: Response) => {
+// Get Products by id
+app.get('/products/:id', async (req: Request, res: Response) => {
   try {
-    const query = req.query.q;
+    const id = req.params.id;
 
-    if (query?.length === 0) {
+    const [isIdCreated] = await db('products').where({id: id})
+
+    if(!isIdCreated) {
       res
         .status(400)
-        throw new Error('Informe pelo menos um caractere para a busca!')
+        throw new Error('Produto não encontrado!')
     }
-    const [result] = await db('products').where("name","like",`%${query}%`)
-
-    if(!result) {
-      res
-        .status(400)
-        throw new Error('Produto não localizado!')
-    }
-
     res
       .status(200)
-      .send(result)
-
+      .send(isIdCreated)
+    
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -347,11 +319,7 @@ app.post('/products', async (req: Request, res: Response) => {
     }
 
     const newProduct = {
-      id: id || existId.id,
-      name: name || existId.name,
-      price: price || existId.price,
-      description: description || existId.description,
-      imageUrl: imageUrl || existId.imageUrl
+      id, name, price, description, imageUrl
     }
 
     await db("products").insert(newProduct)
@@ -373,47 +341,13 @@ app.post('/products', async (req: Request, res: Response) => {
     }
 })
 
-// Get Products by id
-app.get('/products/:id', async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id;
-
-    const [isIdCreated] = await db('products').where("id","=",`${id}`)
-
-    if(!isIdCreated) {
-      res
-        .status(400)
-        throw new Error('Produto não encontrado!')
-    }
-    res
-      .status(200)
-      .send(isIdCreated)
-    
-  } catch(error){
-    console.log(error)
-    if(res.statusCode === 200) {
-        res.status(500)
-      }
-      if(error instanceof Error) {
-        res.send(error.message)
-      }else {
-        res.send('Erro inesperado')
-      }
-    }
-})
-
 // Edit product by id
 app.put('/products/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const {name, price, description, imageUrl} = req.body
 
-    // const [isIdCreated] = await db.raw(`
-    //   SELECT * FROM products
-    //   WHERE id = "${id}"
-    // `)
-
-    const [isIdCreated] = await db('products').where("id","=",`${id}`)
+    const [isIdCreated] = await db('products').where({id: id})
 
     if(!isIdCreated) {
       res
@@ -455,7 +389,7 @@ app.put('/products/:id', async (req: Request, res: Response) => {
 
     res
       .status(200)
-      .send('Produto alterado!')
+      .send('Produto atualizado com sucesso')
 
   } catch(error){
     console.log(error)
@@ -475,18 +409,19 @@ app.delete('/products/:id', async (req: Request, res: Response) => {
   try {
     const productId = req.params.id
 
-    const [isIdCreated] = await db("products").where("id","=",`${productId}`)
+    const [isIdCreated] = await db("products").where({id: productId})
 
     if(!isIdCreated) {
       res.status(400)
       throw new Error('produto não encontrado')
     }
 
-    await db("products").delete().where({id:productId})
+    await db("products").delete().where({id: productId})
 
     res
       .status(201)
       .send('Produto excluído!')
+
   } catch(error){
     console.log(error)
     if(res.statusCode === 200) {
@@ -500,10 +435,8 @@ app.delete('/products/:id', async (req: Request, res: Response) => {
     }
 })
 
-
 //----------------------------------Purchases----------------------------------
 // Get all purchases
-
 app.get('/purchases', async (req: Request, res: Response) => {
   try {
     const result = await db("purchases")
@@ -525,10 +458,10 @@ app.get('/purchases', async (req: Request, res: Response) => {
 })
 
 // Get Purchase by id
-
 app.get('/purchases/:id', async (req: Request, res: Response) => {
   try {
     const purchaseId = req.params.id
+
     if(!purchaseId) {
       res.status(200)
       throw new Error('informe a id da purchase!')
@@ -545,12 +478,12 @@ app.get('/purchases/:id', async (req: Request, res: Response) => {
       "purchases.total_price as totalPrice",
       "purchases.created_at as createdAt",
       "purchases.paid as isPaid",
-      "purchases.buyer_id as buyerId",
+      "purchases.buyer as buyerId",
       "users.email as email",
       "users.name as name"
     ).innerJoin(
       "users",
-      "purchases.buyer_id",
+      "purchases.buyer",
       "=",
       "users.id"
     ).where("purchases.id", "=", `${purchaseId}`)
@@ -568,10 +501,9 @@ app.get('/purchases/:id', async (req: Request, res: Response) => {
       "=",
       "purchases_products.product_id"
     ).where("purchases_products.purchase_id","=",`${purchaseId}`)
-
-    // const result2 = result.map(el => el.isPaid === 0 ? 'false' : 'true')
     
-    purchase[0].products = productsList;
+    purchase[0].isPaid = 0 ? 'false' : 'true'
+    purchase[0].productsList = productsList;
 
     res
       .status(200)
@@ -630,11 +562,10 @@ app.get('/users/:id/purchases/', async (req: Request, res: Response) => {
 // Create purchase
 app.post('/purchases', async (req: Request, res: Response) => {
   try{
-    const {id, buyer_id, total_price, created_At, paid} = req.body
+    const {id, buyer, total_price, created_At, paid, products} = req.body
 
     const [existsId] = await db('purchases').where({id: id})
-
-    const [existsBuyer] = await db('users').where({id: buyer_id})
+    const [existsBuyer] = await db('users').where({id: buyer})
 
     if(id !== undefined) {
       if(existsId) {
@@ -646,7 +577,7 @@ app.post('/purchases', async (req: Request, res: Response) => {
       res.status(400)
       throw new Error('id deve ser informada')
     }
-    if(!buyer_id) {
+    if(!buyer) {
       res.status(400)
       throw new Error('buyer deve ser informada')
     }
@@ -672,10 +603,20 @@ app.post('/purchases', async (req: Request, res: Response) => {
     }
 
     const newPurchase = {
-      id, buyer_id, total_price, created_At, paid
+      id, buyer, total_price, created_At, paid
     }
 
     await db("purchases").insert(newPurchase)
+
+    products.map(async (product:any) => {
+      const newItem = {
+        purchase_id: newPurchase.id,
+        product_id: product.id,
+        quantity: product.quantity
+      }
+      console.table(newItem)
+      await db('purchases_products').insert(newItem)
+    })
     
     res
       .status(201)
@@ -726,7 +667,6 @@ app.delete("/purchases/:id", async (req: Request, res: Response) => {
       }
     }
 })
-
 
 // Delete all purchase by user id
 app.delete('/users/:id/purchases/', async (req: Request, res: Response) => {
