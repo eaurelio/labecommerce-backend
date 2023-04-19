@@ -4,7 +4,7 @@ CREATE TABLE users (
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL, 
   password TEXT NOT NULL,
-  createdAt TEXT
+  createdAt TEXT 
 );
 
 DROP TABLE products;
@@ -82,6 +82,8 @@ VALUES
 
 
 select current_timestamp;
+
+select DATETIME('now', 'localtime');
 
 select * from users;
  SELECT * FROM users

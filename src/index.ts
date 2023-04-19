@@ -680,7 +680,7 @@ app.delete('/users/:id/purchases/', async (req: Request, res: Response) => {
       throw new Error('id do usuário não encontrada!')
     }
 
-    const [purchasesById] = await db("purchases").where({buyer_id: userId})
+    const [purchasesById] = await db("purchases").where({buyer: userId})
 
     if(!purchasesById) {
       res.status(400)
@@ -688,7 +688,7 @@ app.delete('/users/:id/purchases/', async (req: Request, res: Response) => {
     }
 
     await db("purchases_products").delete().where({purchase_id: purchasesById.id})
-    await db('purchases').delete().where({buyer_id: userId})
+    await db('purchases').delete().where({buyer: userId})
 
     res
       .status(200)
