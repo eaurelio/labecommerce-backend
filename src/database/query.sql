@@ -1,11 +1,13 @@
--- Active: 1679961137506@@127.0.0.1@3306
+-- Active: 1682178484315@@127.0.0.1@3306
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL, 
   password TEXT NOT NULL,
-  createdAt TEXT
+  created_at TEXT DEFAULT current_timestamp
 );
+DROP TABLE users;
+select * from users;
 
 DROP TABLE products;
 CREATE TABLE products (
@@ -20,14 +22,17 @@ CREATE TABLE purchases (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   buyer TEXT NOT NULL,
   total_price REAL NOT NULL,
-  created_at TEXT,
   paid INTEGER NOT NULL,
+  created_at TEXT DEFAULT current_timestamp,
   Foreign Key (buyer) REFERENCES users(id)
 );
+
+drop table purchases;
 
 drop table purchases_products;
 
 select * from products;
+select* from purchases;
 select * from purchases_products;
 
 CREATE TABLE purchases_products (
@@ -42,7 +47,7 @@ CREATE TABLE purchases_products (
 SELECT * from purchases_products;
 
 --------------------------------------------------------------------------------------
-INSERT INTO users (id, name, email, password, createdAt)
+INSERT INTO users (id, name, email, password, created_at)
 VALUES
   ('1', 'Aline', 'aline@mail.com', 'vbnbvnbvn', '2023-04-13 01:02:15'),
   ('2', 'Laís', 'lais@mail.com', 'fgssdfwer', '2023-04-13 01:02:15'),
@@ -61,16 +66,17 @@ VALUES
   ('6', 'SUPORTE DE PAREDE P MONITOR', 89.90, 'HARDWARE'),
   ('7', 'RINGLIGHT SMALL', 33.50, 'HARDWARE');
 
-INSERT INTO purchases (id, buyer, total_price, created_at, paid)
+INSERT INTO purchases (id, buyer, total_price, paid, created_at)
 VALUES
-  ('1', '6', 120, '2023-04-13 01:06:10',1),
-  ('2', '4', 90, '2023-04-13 01:06:10',1),
-  ('3', '3', 950, '2023-04-13 01:06:10',1),
-  ('4', '2', 33.50, '2023-04-13 01:06:10',1),
-  ('5', '5', 89.90, '2023-04-13 01:06:10',1),
-  ('6', '1', 300, '2023-04-13 01:06:10',1);
+  ('1', '6', 120, 1, '2023-04-13 01:06:10'),
+  ('2', '4', 90, 1, '2023-04-13 01:06:10'),
+  ('3', '3', 950, 1, '2023-04-13 01:06:10'),
+  ('4', '2', 33.50, 1, '2023-04-13 01:06:10'),
+  ('5', '5', 89.90, 1, '2023-04-13 01:06:10'),
+  ('6', '1', 300, 1, '2023-04-13 01:06:10');
 
-delete from pucharses_products;
+delete from purchases_products
+where purchase_id = '7';
 INSERT INTO purchases_products
 VALUES
   ('1', '1', 1),
@@ -80,9 +86,30 @@ VALUES
   ('5', '6', 1),
   ('6', '4', 1);
 
+select * from purchases_products;
+
 
 select current_timestamp;
+
+select DATETIME('now', 'localtime');
 
 select * from users;
  SELECT * FROM users
       WHERE id = '6';
+
+
+select buyer as comprador, datetime(purchases.created_at, 'localtime') as data
+from purchases;
+
+
+SELECT 
+  purchases.id as 'purchaseId',
+  purchases.total_price as 'totalPrice',
+  datetime(purchases.created_at, 'localtime') as 'createdAt',
+  purchases.paid as 'isPaid',
+  purchases.buyer as 'buyerId',
+  users.email as 'email',
+  users.name as 'name'
+  FROM purchases
+  INNER JOIN users
+  ON purchases.buyer = users.id;

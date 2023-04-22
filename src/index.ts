@@ -48,7 +48,7 @@ app.get('/users', async (req: Request, res: Response) => {
 
 app.post('/users', async (req: Request, res: Response) => {
   try {
-    const {id, name, email, password, createdAt} = req.body;
+    const {id, name, email, password} = req.body;
 
     const [isIdCreated] = await db("users").where("id", "=", `${id}`)
 
@@ -84,7 +84,7 @@ app.post('/users', async (req: Request, res: Response) => {
     }
 
     const newUser = {
-      id, name, email, password, createdAt
+      id, name, email, password
     }
 
     await db("users").insert(newUser)
@@ -535,7 +535,7 @@ app.get('/users/:id/purchases/', async (req: Request, res: Response) => {
       throw new Error('id do usuário não encontrada')
     }
 
-    const [purchases] = await db('purchases').where({buyer_id: userId})
+    const [purchases] = await db('purchases').where({buyer: userId})
 
     if(!purchases) {
       res.status(400)
@@ -562,7 +562,7 @@ app.get('/users/:id/purchases/', async (req: Request, res: Response) => {
 // Create purchase
 app.post('/purchases', async (req: Request, res: Response) => {
   try{
-    const {id, buyer, total_price, created_At, paid, products} = req.body
+    const {id, buyer, total_price, paid, products} = req.body
 
     const [existsId] = await db('purchases').where({id: id})
     const [existsBuyer] = await db('users').where({id: buyer})
@@ -593,17 +593,13 @@ app.post('/purchases', async (req: Request, res: Response) => {
       res.status(400)
       throw new Error('totalprice deve ser numérico')
     }
-    if(!created_At) {
-      res.status(400)
-      throw new Error('createdAt deve ser informada')
-    }
     if(!paid) {
       res.status(400)
       throw new Error('paid deve ser informada')
     }
 
     const newPurchase = {
-      id, buyer, total_price, created_At, paid
+      id, buyer, total_price, paid
     }
 
     await db("purchases").insert(newPurchase)
@@ -668,40 +664,3 @@ app.delete("/purchases/:id", async (req: Request, res: Response) => {
     }
 })
 
-// Delete all purchase by user id
-app.delete('/users/:id/purchases/', async (req: Request, res: Response) => {
-  try {
-    const userId = req.params.id
-
-    const [isUserIdCreated] = await db("users").where({id: userId})
-
-    if(!isUserIdCreated) {
-      res.status(400)
-      throw new Error('id do usuário não encontrada!')
-    }
-
-    const [purchasesById] = await db("purchases").where({buyer_id: userId})
-
-    if(!purchasesById) {
-      res.status(400)
-      throw new Error('não foram encontradas compras para a id informada')
-    }
-
-    await db("purchases_products").delete().where({purchase_id: purchasesById.id})
-    await db('purchases').delete().where({buyer_id: userId})
-
-    res
-      .status(200)
-      .send("compras excluídas com sucesso")
-  } catch(error){
-    console.log(error)
-    if(res.statusCode === 200) {
-        res.status(500)
-      }
-      if(error instanceof Error) {
-        res.send(error.message)
-      }else {
-        res.send('Erro inesperado')
-      }
-    }
-})
