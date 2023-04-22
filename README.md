@@ -7,8 +7,8 @@ API desenvolvida em NodeJS para o backend de um ecommmerce, que recebe requisiç
 
 - Typescript
 - NodeJS
-- Knex
 - SQLite
+- Knex
 
 ## Documentação da API
 
@@ -256,6 +256,7 @@ Retorna os dados de uma compra, incluindo a lista de produtos da mesma.
 ## Referências
 
  - [SQLite tutorial](https://www.sqlitetutorial.netn/)
+ - [Knexjs.org](https://knexjs.org/guide)
  - [Dev Mozilla](https://developer.mozilla.org/pt-BR/)
  - [w3schools](https://www.w3schools.com/)
  - [Awesome README](https://github.com/matiassingers/awesome-readme)
